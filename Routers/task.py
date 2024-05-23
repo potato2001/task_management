@@ -249,7 +249,7 @@ def get_task_by_id(
         "deleted_at": task_model.deleted_at,
         "updated_at": task_model.updated_at,
     }
-@router.get("/task_status/{status_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.get("/task_status/{status_id}", summary="Lấy tất cả công việc theo trạng thái", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 def get_task_status_by_id(
     status_id: str,
     db: Session = Depends(get_database_session),
@@ -269,7 +269,7 @@ def get_task_status_by_id(
     )
 
     if not tasks:
-        raise HTTPException(status_code=404, detail="Tasks not found")
+        tasks = []
 
     result = []
     for task in tasks:
