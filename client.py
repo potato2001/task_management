@@ -16,7 +16,7 @@ async def disconnect():
 
 
 async def main():
-    await sio_client.connect(url='http://localhost:8000/socket.io/', socketio_path='sockets')
+    await sio_client.connect(url='http://localhost:8000/', socketio_path='sockets')
     await sio_client.disconnect()
 
 asyncio.run(main())

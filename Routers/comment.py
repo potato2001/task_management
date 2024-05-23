@@ -21,7 +21,7 @@ def get_database_session():
         db.close()
 
 #Thêm loại sản phẩm
-@router.post("/api/v1/comment/create", summary="Tạo Comment",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.post("/api/v1/comment/create", summary="Tạo Comment")
 async def create_comment(
     commmentSchema: CommentSchema,
     db: Session = Depends(get_database_session),
@@ -63,7 +63,7 @@ async def update_tag(
     return {"message": "Chỉnh sửa Comment thành công"}
 
 #Lấy tất cả loại sản phẩm
-@router.get("/v1/comments_in_task/{task_id}", summary="Lấy tất cả comment theo task")
+@router.get("/api/v1/comments_in_task/{task_id}", summary="Lấy tất cả comment theo task")
 def get_comments_in_task(
     task_id: str,
     db: Session = Depends(get_database_session),
@@ -73,6 +73,7 @@ def get_comments_in_task(
         .join(UserModel, CommentModel.user_id == UserModel.id)
         .join(TaskModel, CommentModel.task_id == TaskModel.id)
         .filter(CommentModel.task_id == task_id)
+        .order_by(CommentModel.created_at)  # Ordering by created_at from past to present
         .all()
     )
     

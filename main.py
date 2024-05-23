@@ -23,9 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount Socket.IO app at a sub-path
-app.mount('/socket.io', app=sio_app)
-
 # Mount Static files
 app.mount("/images", StaticFiles(directory="images"), name="images")
 
@@ -37,3 +34,6 @@ app.include_router(status.router, tags=['Status Controller'])
 app.include_router(task.router, tags=['Task Controller'])
 app.include_router(tag.router, tags=['Tag Controller'])
 app.include_router(comment.router, tags=['Comment Controller'])
+
+# Mount Socket.IO app at a sub-path
+app.mount('/', sio_app)
