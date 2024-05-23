@@ -66,7 +66,7 @@ async def create_task(
     return {"message": "Tạo công việc thành công", "task_id": new_task.id}
 
 # Sủa loại sản phẩm
-@router.put("/update/{task_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.patch("/update/{task_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_task(
     task_id: str,
     taskUpdateSchema: TaskUpdateSchema,
@@ -106,7 +106,7 @@ async def update_task(
     db.refresh(task)
 
     return {"message": "Cập nhật công việc thành công", "task_id": task.id}
-@router.put("/task/update_status", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.put("/update_status", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_task(
     task_status_schema:TaskStatusUpdateSchema,
     db: Session = Depends(get_database_session),
@@ -128,7 +128,7 @@ async def update_task(
 
     return {"message": "Cập nhật trạng thái công việc thành công", "task_id": task.id}
 
-@router.put("/task/undo_delete/{task_id}", summary="Hoàn tác xoá công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.put("/undo_delete/{task_id}", summary="Hoàn tác xoá công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 async def delete_task(status_id: str, db: Session = Depends(get_database_session)):
     existing_task= db.query(TaskModel).filter(TaskModel.id == status_id).first()
     if not existing_task:
@@ -199,7 +199,7 @@ async def get_all_tasks(
 
     # Construct and return the response dictionary
     return  all_tasks
-@router.get("/task/{task_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.get("/{task_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 def get_task_by_id(
     task_id: str,
     db: Session = Depends(get_database_session),
