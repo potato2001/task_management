@@ -17,7 +17,7 @@ def get_database_session():
     finally:
         db.close()
 
-@router.get("/user", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.get("/user", summary="Lấy thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def get_user(
     authorization: str = Header(...),
     db: Session = Depends(get_database_session),
@@ -46,3 +46,25 @@ async def get_user(
         }
     else:
         return {"error": "User not found"}, 404
+    
+@router.get("/user/all", summary="Lấy thông tin tất cả user", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+async def get_user_all(
+    db: Session = Depends(get_database_session),
+):
+    # Query the database to get the user along with the position name
+    user_data = db.query(UserModel, PositionModel).join(PositionModel, UserModel.position_id == PositionModel.id).all()
+    users = []
+    for data in user_data:
+        user, position = data
+        users.append({
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone,
+                "address": user.address,
+                "gender": user.gender,
+                "dob": user.dob,
+                "avatar": user.avatar,
+                "position": position
+            })
+    return users
