@@ -53,6 +53,9 @@ class CommentUpdateSchema(BaseModel):
     task_id:str
     user_id:str
     message:str
+class TaskStatusUpdateSchema(BaseModel):
+    task_id:str
+    status_id:str
 
 # class ProductSchema(BaseModel):
 #     product_code :str

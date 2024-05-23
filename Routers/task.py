@@ -3,7 +3,7 @@ from sqlalchemy import exists
 from sqlalchemy.orm import Session,aliased
 from model import TaskModel,StatusModel,TagModel,UserModel,TaskHasTagModel
 from database import SessionLocal, engine
-from schema import TaskSchema,TaskUpdateSchema
+from schema import TaskSchema,TaskUpdateSchema,TaskStatusUpdateSchema
 import model
 from datetime import datetime
 import uuid
@@ -101,9 +101,29 @@ async def update_task(
     db.refresh(task)
 
     return {"message": "Cập nhật công việc thành công", "task_id": task.id}
+@router.put("/api/v1/task/update_status", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+async def update_task(
+    task_status_schema:TaskStatusUpdateSchema,
+    db: Session = Depends(get_database_session),
+):
+    # Retrieve the existing task
+    task = db.query(TaskModel).filter(TaskModel.id == task_status_schema.task_id).first()
+    status = db.query(StatusModel).filter(StatusModel.id == task_status_schema.status_id).first()
 
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    if not status:
+        raise HTTPException(status_code=404, detail="Status not found")
+    print(task)
+    task.status_id = task_status_schema.status_id
+    task.updated_at=datetime.now().strftime("%Y-%m-%d %H:%M")
+    # Process the tags
+    db.commit()
+    db.refresh(task)
 
-@router.put("/api/v1/task/undo_delelte/{task_id}", summary="Hoàn tác xoá công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+    return {"message": "Cập nhật trạng thái công việc thành công", "task_id": task.id}
+
+@router.put("/api/v1/task/undo_delete/{task_id}", summary="Hoàn tác xoá công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 async def delete_task(status_id: str, db: Session = Depends(get_database_session)):
     existing_task= db.query(TaskModel).filter(TaskModel.id == status_id).first()
     if not existing_task:
@@ -174,7 +194,7 @@ def get_all_tasks(
 
     # Construct and return the response dictionary
     return  all_tasks
-@router.get("/api/v1/task/{task_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.get("/api/v1/task/{task_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 def get_task_by_id(
     task_id: str,
     db: Session = Depends(get_database_session),
@@ -229,9 +249,67 @@ def get_task_by_id(
         "deleted_at": task_model.deleted_at,
         "updated_at": task_model.updated_at,
     }
+@router.get("/api/v1/task_status/{status_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+def get_task_status_by_id(
+    status_id: str,
+    db: Session = Depends(get_database_session),
+):
+    # Alias the UserModel to distinguish between assigner and carrier
+    Assigner = aliased(UserModel)
+    Carrier = aliased(UserModel)
+
+    # Query the database to fetch the tasks along with their status, assigner, and carrier information
+    tasks = (
+        db.query(TaskModel, StatusModel, Assigner, Carrier)
+        .join(StatusModel, TaskModel.status_id == StatusModel.id)
+        .join(Assigner, TaskModel.assigner == Assigner.id)
+        .join(Carrier, TaskModel.carrier == Carrier.id)
+        .filter(StatusModel.id == status_id)
+        .all()  # Fetch all matching results
+    )
+
+    if not tasks:
+        raise HTTPException(status_code=404, detail="Tasks not found")
+
+    result = []
+    for task in tasks:
+        task_model, status_model, assigner, carrier = task
+
+        # Query to get all tags associated with the task
+        tags = (
+            db.query(TagModel)
+            .join(TaskHasTagModel, TagModel.id == TaskHasTagModel.tag_id)
+            .filter(TaskHasTagModel.task_id == task_model.id)
+            .all()
+        )
+
+        result.append({
+            "id": task_model.id,
+            "start_time": task_model.start_time,
+            "end_time": task_model.end_time,
+            "name": task_model.name,
+            "assigner": {
+                "id": assigner.id,
+                "name": assigner.name,
+            },
+            "carrier": {
+                "id": carrier.id,
+                "name": carrier.name,
+            },
+            "status": {
+                "id": status_model.id,
+                "name": status_model.name,
+            },
+            "tags": [{"id": tag.id, "name": tag.name} for tag in tags],
+            "created_at": task_model.created_at,
+            "deleted_at": task_model.deleted_at,
+            "updated_at": task_model.updated_at,
+        })
+
+    return result
 
 #Xóa loại sản phẩm
-@router.delete("/api/v1/task/delelte/{task_id}", summary="Xóa công việc",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.delete("/api/v1/task/delete/{task_id}", summary="Xóa công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 async def delete_task(status_id: str, db: Session = Depends(get_database_session)):
     existing_task= db.query(TaskModel).filter(TaskModel.id == status_id).first()
     if not existing_task:

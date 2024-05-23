@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from Routers import position,login,user,status,task,tag,comment
 from fastapi.staticfiles import StaticFiles
-
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi_socketio import SocketManager
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -9,8 +10,8 @@ app.mount("/images", StaticFiles(directory="images"), name="images")
 
 origins = [
     "http://localhost",
-    "http://localhost:8080",  # Adjust this based on your frontend URL
-]
+    "http://localhost:8080", 
+    "http://localhost:3000", ]
 
 app.add_middleware(
     CORSMiddleware,
