@@ -9,7 +9,7 @@ from datetime import datetime
 import uuid
 from auth.auth_handler import JWTBearer
 
-router = APIRouter()  
+router = APIRouter(prefix="/api/v1/task")  
 model.Base.metadata.create_all(bind=engine)
 
 
@@ -22,7 +22,7 @@ def get_database_session():
 custome_uuid=str(uuid.uuid4()).replace('-', '')[:8]
 
 #Thêm loại sản phẩm
-@router.post("/api/v1/task/create", summary="Tạo công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.post("/create", summary="Tạo công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def create_task(
     taskSchema: TaskSchema,
     db: Session = Depends(get_database_session),
@@ -61,7 +61,7 @@ async def create_task(
     return {"message": "Tạo công việc thành công", "task_id": new_task.id}
 
 # Sủa loại sản phẩm
-@router.put("/api/v1/task/update/{task_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.put("/update/{task_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_task(
     task_id: str,
     taskUpdateSchema: TaskUpdateSchema,
@@ -101,7 +101,7 @@ async def update_task(
     db.refresh(task)
 
     return {"message": "Cập nhật công việc thành công", "task_id": task.id}
-@router.put("/api/v1/task/update_status", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.put("/task/update_status", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_task(
     task_status_schema:TaskStatusUpdateSchema,
     db: Session = Depends(get_database_session),
@@ -123,7 +123,7 @@ async def update_task(
 
     return {"message": "Cập nhật trạng thái công việc thành công", "task_id": task.id}
 
-@router.put("/api/v1/task/undo_delete/{task_id}", summary="Hoàn tác xoá công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.put("/task/undo_delete/{task_id}", summary="Hoàn tác xoá công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 async def delete_task(status_id: str, db: Session = Depends(get_database_session)):
     existing_task= db.query(TaskModel).filter(TaskModel.id == status_id).first()
     if not existing_task:
@@ -135,8 +135,8 @@ async def delete_task(status_id: str, db: Session = Depends(get_database_session
     return {"message": "Hoàn tác xoá công việc thành công"}
 #Lấy tất cả loại sản phẩm
 
-@router.get("/api/v1/task/all", summary="Lấy tất cả công việc", dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
-def get_all_tasks(
+@router.get("/all", summary="Lấy tất cả công việc")
+async def get_all_tasks(
     db: Session = Depends(get_database_session),
 ):
     # Alias the UserModel to distinguish between assigner and carrier
@@ -194,7 +194,7 @@ def get_all_tasks(
 
     # Construct and return the response dictionary
     return  all_tasks
-@router.get("/api/v1/task/{task_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.get("/task/{task_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 def get_task_by_id(
     task_id: str,
     db: Session = Depends(get_database_session),
@@ -249,7 +249,7 @@ def get_task_by_id(
         "deleted_at": task_model.deleted_at,
         "updated_at": task_model.updated_at,
     }
-@router.get("/api/v1/task_status/{status_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.get("/task_status/{status_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 def get_task_status_by_id(
     status_id: str,
     db: Session = Depends(get_database_session),
@@ -309,7 +309,7 @@ def get_task_status_by_id(
     return result
 
 #Xóa loại sản phẩm
-@router.delete("/api/v1/task/delete/{task_id}", summary="Xóa công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.delete("/task/delete/{task_id}", summary="Xóa công việc",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 async def delete_task(status_id: str, db: Session = Depends(get_database_session)):
     existing_task= db.query(TaskModel).filter(TaskModel.id == status_id).first()
     if not existing_task:

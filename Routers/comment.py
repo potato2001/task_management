@@ -63,7 +63,7 @@ async def update_tag(
     return {"message": "Chỉnh sửa Comment thành công"}
 
 #Lấy tất cả loại sản phẩm
-@router.get("/api/v1/comments_in_task/{task_id}", summary="Lấy tất cả comment theo task", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.get("/v1/comments_in_task/{task_id}", summary="Lấy tất cả comment theo task")
 def get_comments_in_task(
     task_id: str,
     db: Session = Depends(get_database_session),
@@ -82,7 +82,6 @@ def get_comments_in_task(
     all_comments = []
     for comment in comments:
         user = db.query(UserModel).filter(UserModel.id == comment.user_id).first()
-        task = db.query(TaskModel).filter(TaskModel.id == comment.task_id).first()
         
         all_comments.append({
             "id": comment.id,
