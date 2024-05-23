@@ -8,6 +8,8 @@ import model
 from datetime import datetime
 import uuid
 from auth.auth_handler import JWTBearer
+from fastapi import Header
+from auth.auth_handler import decodeJWT
 
 router = APIRouter(prefix="/api/v1/task")  
 model.Base.metadata.create_all(bind=engine)
@@ -25,11 +27,14 @@ custome_uuid=str(uuid.uuid4()).replace('-', '')[:8]
 @router.post("/create", summary="Tạo công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def create_task(
     taskSchema: TaskSchema,
+    authorization: str = Header(...),
     db: Session = Depends(get_database_session),
 ):
+    user = decodeJWT(authorization.split()[1])
+    if(taskSchema.assigner == ''):
+        taskSchema.assigner = user['id']
     # Retrieve the default status id
     status_default = db.query(StatusModel).filter(StatusModel.name == "Cần làm").first().id
-
     # Create a new task instance
     new_task = TaskModel(
         id=str(uuid.uuid4()).replace('-', '')[:8],

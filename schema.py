@@ -30,6 +30,7 @@ class TaskSchema(BaseModel):
     assigner:str
     carrier:str
     tag: Optional[List[TagToTaskSchema]] = None
+    description: str
 class TagSchema(BaseModel):
     name:str
     color:str
