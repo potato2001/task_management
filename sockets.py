@@ -28,7 +28,7 @@ async def sendAll(sid):
 async def sendExcept(sid):
     for client_sid in connected_clients:
         if client_sid != sid:
-            await sio_server.emit('receiveExcept')
+            await sio_server.emit('receiveExcept', room=client_sid)
 
 @sio_server.event
 async def disconnect(sid):
