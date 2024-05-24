@@ -106,21 +106,22 @@ async def update_task(
     db.refresh(task)
 
     return {"message": "Cập nhật công việc thành công", "task_id": task.id}
-@router.put("/update_status", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.patch("/update_status/{task_id}/{status_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_task(
-    task_status_schema:TaskStatusUpdateSchema,
+    task_id: str,
+    status_id: str,
     db: Session = Depends(get_database_session),
 ):
     # Retrieve the existing task
-    task = db.query(TaskModel).filter(TaskModel.id == task_status_schema.task_id).first()
-    status = db.query(StatusModel).filter(StatusModel.id == task_status_schema.status_id).first()
+    task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+    status = db.query(StatusModel).filter(StatusModel.id == status_id).first()
 
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     if not status:
         raise HTTPException(status_code=404, detail="Status not found")
     print(task)
-    task.status_id = task_status_schema.status_id
+    task.status_id = status_id
     task.updated_at=datetime.now().strftime("%Y-%m-%d %H:%M")
     # Process the tags
     db.commit()
@@ -296,14 +297,17 @@ def get_task_status_by_id(
             "assigner": {
                 "id": assigner.id,
                 "name": assigner.name,
+                "avatar": assigner.avatar,
             },
             "carrier": {
                 "id": carrier.id,
                 "name": carrier.name,
+                "avatar": carrier.avatar,
             },
             "status": {
                 "id": status_model.id,
                 "name": status_model.name,
+                "is_completed": status_model.is_completed
             },
             "tags": [{"id": tag.id, "name": tag.name} for tag in tags],
             "created_at": task_model.created_at,
