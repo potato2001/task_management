@@ -32,17 +32,15 @@ async def get_user(
     if user_data:
         user, position = user_data
         return {
-            "user": {
-                "id": user.id,
-                "name": user.name,
-                "email": user.email,
-                "phone": user.phone,
-                "address": user.address,
-                "gender": user.gender,
-                "dob": user.dob,
-                "avatar": user.avatar,
-                "position": position
-            }
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "phone": user.phone,
+            "address": user.address,
+            "gender": user.gender,
+            "dob": user.dob,
+            "avatar": user.avatar,
+            "position": position
         }
     else:
         return {"error": "User not found"}, 404
