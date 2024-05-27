@@ -27,12 +27,9 @@ custome_uuid=str(uuid.uuid4()).replace('-', '')[:8]
 @router.post("/create", summary="Tạo công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def create_task(
     taskSchema: TaskSchema,
-    authorization: str = Header(...),
     db: Session = Depends(get_database_session),
 ):
-    user = decodeJWT(authorization.split()[1])
-    if(taskSchema.assigner == ''):
-        taskSchema.assigner = user['id']
+
     # Retrieve the default status id
     status_default = db.query(StatusModel).filter(StatusModel.name == "Cần làm").first().id
     # Create a new task instance
@@ -52,11 +49,13 @@ async def create_task(
     db.refresh(new_task)
 
     # Process the tags
-    if taskSchema.tag:
-        for tag in taskSchema.tag:
+    if taskSchema.tags:
+
+        for tag in taskSchema.tags:
+            print(tag)
             task_has_tag = TaskHasTagModel(
                 task_id=new_task.id,
-                tag_id=tag.tag_id,
+                tag_id=tag,
                 created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
             )
             db.add(task_has_tag)
@@ -66,46 +65,39 @@ async def create_task(
     return {"message": "Tạo công việc thành công", "task_id": new_task.id}
 
 # Sủa loại sản phẩm
-@router.patch("/update/{task_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.put("/update/{task_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_task(
     task_id: str,
-    taskUpdateSchema: TaskUpdateSchema,
+    taskSchema: TaskSchema,
     db: Session = Depends(get_database_session),
 ):
-    # Retrieve the existing task
     task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+    
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Công việc không tồn tại")
 
-    # Update task fields if provided
-    if taskUpdateSchema.name:
-        task.name = taskUpdateSchema.name
-    if taskUpdateSchema.start_time:
-        task.start_time = taskUpdateSchema.start_time
-    if taskUpdateSchema.end_time:
-        task.end_time = taskUpdateSchema.end_time
-    if taskUpdateSchema.assigner:
-        task.assigner = taskUpdateSchema.assigner
-    if taskUpdateSchema.carrier:
-        task.carrier = taskUpdateSchema.carrier
-    task.updated_at=datetime.now().strftime("%Y-%m-%d %H:%M")
-    # Process the tags
-    if taskUpdateSchema.tag is not None:
-        # Delete existing task tags
+    task.name = taskSchema.name
+    task.start_time = taskSchema.start_time
+    task.end_time = taskSchema.end_time
+    task.assigner = taskSchema.assigner
+    task.carrier = taskSchema.carrier
+    task.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    if taskSchema.tags is not None:
         db.query(TaskHasTagModel).filter(TaskHasTagModel.task_id == task_id).delete()
-        # Add new tags
-        for tag in taskUpdateSchema.tag:
+        for tag in taskSchema.tags:
             task_has_tag = TaskHasTagModel(
                 task_id=task_id,
-                tag_id=tag.id,
+                tag_id=tag,
                 created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
             )
             db.add(task_has_tag)
-
+    
     db.commit()
     db.refresh(task)
 
     return {"message": "Cập nhật công việc thành công", "task_id": task.id}
+
 @router.patch("/update_status/{task_id}/{status_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_task(
     task_id: str,

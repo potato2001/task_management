@@ -29,7 +29,7 @@ class TaskSchema(BaseModel):
     end_time:str
     assigner:str
     carrier:str
-    tag: Optional[List[TagToTaskSchema]] = None
+    tags: Optional[List[str]] = None
     description: str
 class TagSchema(BaseModel):
     id: str
