@@ -27,9 +27,12 @@ custome_uuid=str(uuid.uuid4()).replace('-', '')[:8]
 @router.post("/create", summary="Tạo công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def create_task(
     taskSchema: TaskSchema,
+    authorization: str = Header(...),
     db: Session = Depends(get_database_session),
 ):
-
+    user = decodeJWT(authorization.split()[1])
+    if(taskSchema.assigner == ''):
+        taskSchema.assigner = user['id']
     # Retrieve the default status id
     status_default = db.query(StatusModel).filter(StatusModel.name == "Cần làm").first().id
     # Create a new task instance
@@ -41,6 +44,7 @@ async def create_task(
         status_id=status_default,
         assigner=taskSchema.assigner,
         carrier=taskSchema.carrier,
+        description=taskSchema.description,
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
     )
 
@@ -65,7 +69,7 @@ async def create_task(
     return {"message": "Tạo công việc thành công", "task_id": new_task.id}
 
 # Sủa loại sản phẩm
-@router.put("/update/{task_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.patch("/update/{task_id}", summary="Cập nhật công việc", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_task(
     task_id: str,
     taskSchema: TaskSchema,
@@ -81,6 +85,7 @@ async def update_task(
     task.end_time = taskSchema.end_time
     task.assigner = taskSchema.assigner
     task.carrier = taskSchema.carrier
+    task.description = taskSchema.description
     task.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     if taskSchema.tags is not None:
@@ -233,6 +238,7 @@ def get_task_by_id(
         "start_time": task_model.start_time,
         "end_time": task_model.end_time,
         "name": task_model.name,
+        "description": task_model.description,
         "assigner": assigner,
         "carrier": carrier,
         "status": status_model,
@@ -280,6 +286,7 @@ def get_task_status_by_id(
             "id": task_model.id,
             "start_time": task_model.start_time,
             "end_time": task_model.end_time,
+            "description": task_model.description,
             "name": task_model.name,
             "assigner": assigner,
             "carrier": carrier,
