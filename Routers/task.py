@@ -97,7 +97,7 @@ async def update_task(
         for tag in taskUpdateSchema.tag:
             task_has_tag = TaskHasTagModel(
                 task_id=task_id,
-                tag_id=tag.tag_id,
+                tag_id=tag.id,
                 created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
             )
             db.add(task_has_tag)
@@ -241,19 +241,10 @@ def get_task_by_id(
         "start_time": task_model.start_time,
         "end_time": task_model.end_time,
         "name": task_model.name,
-        "assigner": {
-            "id": assigner.id,
-            "name": assigner.name,
-        },
-        "carrier": {
-            "id": carrier.id,
-            "name": carrier.name,
-        },
-        "status": {
-            "id": status_model.id,
-            "name": status_model.name,
-        },
-        "tags": [{"id": tag.id, "name": tag.name} for tag in tags],
+        "assigner": assigner,
+        "carrier": carrier,
+        "status": status_model,
+        "tags": [tag for tag in tags],
         "created_at": task_model.created_at,
         "deleted_at": task_model.deleted_at,
         "updated_at": task_model.updated_at,

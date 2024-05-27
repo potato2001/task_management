@@ -32,6 +32,7 @@ class TaskSchema(BaseModel):
     tag: Optional[List[TagToTaskSchema]] = None
     description: str
 class TagSchema(BaseModel):
+    id: str
     name:str
     color:str
     background_color:str
