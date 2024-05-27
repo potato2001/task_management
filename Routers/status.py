@@ -101,7 +101,7 @@ async def set_default_status(status_id: str, db: Session = Depends(get_database_
     return {"message": "Đặt trạng thái mặc định thành công"}
 
 #Lấy tất cả loại sản phẩm
-@router.get("/", summary="Lấy tất cả trạng thái",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.get("", summary="Lấy tất cả trạng thái",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 def get_status(
     db: Session = Depends(get_database_session),
 ):

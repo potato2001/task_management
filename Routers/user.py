@@ -17,7 +17,7 @@ def get_database_session():
     finally:
         db.close()
 
-@router.get("/", summary="Lấy thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.get("", summary="Lấy thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def get_user(
     authorization: str = Header(...),
     db: Session = Depends(get_database_session),
