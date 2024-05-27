@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter,HTTPException
+from fastapi import Depends, APIRouter,HTTPException,Query
 from sqlalchemy import exists
 from sqlalchemy.orm import Session,aliased
 from model import TaskModel,StatusModel,TagModel,UserModel,TaskHasTagModel
@@ -144,19 +144,22 @@ async def delete_task(status_id: str, db: Session = Depends(get_database_session
 @router.get("/all", summary="Lấy tất cả công việc")
 async def get_all_tasks(
     db: Session = Depends(get_database_session),
+    limit: int = Query(5, description="Số lượng công việc tối đa để lấy")
 ):
     # Alias the UserModel to distinguish between assigner and carrier
     Assigner = aliased(UserModel)
     Carrier = aliased(UserModel)
 
     # Query the database to fetch all tasks along with their status, assigner, and carrier information
-    tasks = (
+    tasks_query = (
         db.query(TaskModel, StatusModel, Assigner, Carrier)
         .join(StatusModel, TaskModel.status_id == StatusModel.id)
         .join(Assigner, TaskModel.assigner == Assigner.id)
         .join(Carrier, TaskModel.carrier == Carrier.id)
-        .all()
     )
+
+    # Apply the limit to the query
+    tasks = tasks_query.limit(limit).all()
 
     if not tasks:
         raise HTTPException(status_code=404, detail="No tasks found")
@@ -179,7 +182,7 @@ async def get_all_tasks(
             "start_time": task_model.start_time,
             "end_time": task_model.end_time,
             "name": task_model.name,
-            "description":task_model.description,
+            "description": task_model.description,
             "assigner": {
                 "id": assigner.id,
                 "name": assigner.name,
@@ -199,7 +202,7 @@ async def get_all_tasks(
         })
 
     # Construct and return the response dictionary
-    return  all_tasks
+    return all_tasks
 @router.get("/{task_id}", summary="Lấy một công việc", dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 def get_task_by_id(
     task_id: str,

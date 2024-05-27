@@ -6,7 +6,7 @@ from database import SessionLocal, engine
 import model
 from auth.auth_handler import JWTBearer
 
-router = APIRouter()  
+router = APIRouter(prefix="/api/v1/user")  
 model.Base.metadata.create_all(bind=engine)
 
 
@@ -17,7 +17,7 @@ def get_database_session():
     finally:
         db.close()
 
-@router.get("/user", summary="Lấy thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.get("/", summary="Lấy thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def get_user(
     authorization: str = Header(...),
     db: Session = Depends(get_database_session),
@@ -45,7 +45,7 @@ async def get_user(
     else:
         return {"error": "User not found"}, 404
     
-@router.get("/user/all", summary="Lấy thông tin tất cả user", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+@router.get("/all", summary="Lấy thông tin tất cả user", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def get_user_all(
     db: Session = Depends(get_database_session),
 ):

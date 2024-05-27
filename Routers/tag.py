@@ -9,7 +9,7 @@ from datetime import datetime
 import uuid
 from auth.auth_handler import JWTBearer
 
-router = APIRouter()  
+router = APIRouter(prefix="/api/v1/tag")  
 model.Base.metadata.create_all(bind=engine)
 
 
@@ -21,7 +21,7 @@ def get_database_session():
         db.close()
 
 #Thêm loại sản phẩm
-@router.post("/api/v1/tag/create", summary="Tạo Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.post("/create", summary="Tạo Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def create_tag(
     tagSchema: TagSchema,
     db: Session = Depends(get_database_session),
@@ -45,7 +45,7 @@ async def create_tag(
     return {"message": "Tạo Tag thành công"}
 
 # Sủa loại sản phẩm
-@router.put("/api/v1/tag/update/{tag_id}", summary="Cập nhật Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.put("/update/{tag_id}", summary="Cập nhật Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def update_tag(
     tag_id: str,
     tag_update: TagSchema,
@@ -70,7 +70,7 @@ async def update_tag(
     return {"message": "Chỉnh sửa Tag thành công"}
 
 #Hoàn tác xoá đăng nhập
-@router.put("/api/v1/tag/undo_delete/{status_id}", summary="Hoàn tác xóa Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.put("/undo_delete/{status_id}", summary="Hoàn tác xóa Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def undo_delete_tag(status_id: str, db: Session = Depends(get_database_session)):
     existing_tag= db.query(TagModel).filter(TagModel.id == status_id).first()
     if not existing_tag:
@@ -80,7 +80,7 @@ async def undo_delete_tag(status_id: str, db: Session = Depends(get_database_ses
 
     return {"message": "Hoàn tác xoá Tag thành công"}
 #Lấy tất cả loại sản phẩm
-@router.get("/api/v1/tag/all", summary="Lấy tất cả Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.get("/all", summary="Lấy tất cả Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 def get_tag(
     db: Session = Depends(get_database_session),
 ):
@@ -89,7 +89,7 @@ def get_tag(
 
     )
     return tags
-@router.get("/api/v1/tag/{tag_id}", summary="Lấy một Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.get("/{tag_id}", summary="Lấy một Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 def get_tag_by_id(
     tag_id: str,
     db: Session = Depends(get_database_session),
@@ -99,7 +99,7 @@ def get_tag_by_id(
     )
     return  tag
 #Xóa loại sản phẩm
-@router.delete("/api/v1/tag/delete/{tag_id}", summary="Xóa Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.delete("delete/{tag_id}", summary="Xóa Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def delete_status(tag_id: str, db: Session = Depends(get_database_session)):
     existing_status= db.query(TagModel).filter(TagModel.id == tag_id).first()
     if not existing_status:

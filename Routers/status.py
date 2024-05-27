@@ -9,7 +9,7 @@ from datetime import datetime
 import uuid
 from auth.auth_handler import JWTBearer
 
-router = APIRouter()  
+router = APIRouter(prefix="/api/v1/status")  
 model.Base.metadata.create_all(bind=engine)
 
 
@@ -22,7 +22,7 @@ def get_database_session():
 custome_uuid=str(uuid.uuid4()).replace('-', '')[:8]
 
 #Thêm loại sản phẩm
-@router.post("/api/v1/status/create", summary="Tạo trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.post("/create", summary="Tạo trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
 async def create_status(
     statusSchema: StatusSchema,
     db: Session = Depends(get_database_session),
@@ -48,7 +48,7 @@ async def create_status(
     return {"message": "Tạo trạng thái thành công"}
 
 # Sủa loại sản phẩm
-@router.put("/api/v1/status/update/{status_id}", summary="Cập nhật trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.put("/update/{status_id}", summary="Cập nhật trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
 async def update_status(
     status_id: str,
     status_update: StatusSchema,
@@ -73,7 +73,7 @@ async def update_status(
     return {"message": "Chỉnh sửa trạng thái thành công"}
 
 #Hoàn tác xoá đăng nhập
-@router.put("/api/v1/status/undo_delete/{status_id}", summary="Hoàn tác xóa trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.put("/undo_delete/{status_id}", summary="Hoàn tác xóa trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
 async def undo_delete_status(
     status_id: str,
     db: Session = Depends(get_database_session)):
@@ -86,7 +86,7 @@ async def undo_delete_status(
 
     return {"message": "Hoàn tác xoá trạng thái thành công"}
 #Đặt làm mặc định
-@router.post("/api/v1/status/default/{status_id}", summary="Đặt làm mặc định", dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.post("/default/{status_id}", summary="Đặt làm mặc định", dependencies=[Depends(JWTBearer().has_role([1]))])
 async def set_default_status(status_id: str, db: Session = Depends(get_database_session)):
     existing_status = db.query(StatusModel).filter(StatusModel.id == status_id).first()
     if not existing_status:
@@ -101,7 +101,7 @@ async def set_default_status(status_id: str, db: Session = Depends(get_database_
     return {"message": "Đặt trạng thái mặc định thành công"}
 
 #Lấy tất cả loại sản phẩm
-@router.get("/api/v1/status", summary="Lấy tất cả trạng thái",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.get("/", summary="Lấy tất cả trạng thái",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 def get_status(
     db: Session = Depends(get_database_session),
 ):
@@ -110,7 +110,7 @@ def get_status(
 
     )
     return statuses
-@router.get("/api/v1/status/{status_id}", summary="Lấy một trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.get("/{status_id}", summary="Lấy một trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
 def get_status_by_id(
     status_id: str,
     db: Session = Depends(get_database_session),
@@ -120,7 +120,7 @@ def get_status_by_id(
     )
     return  statuses
 #Xóa loại sản phẩm
-@router.delete("/api/v1/status/delete/{status_id}", summary="Xóa trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.delete("/delete/{status_id}", summary="Xóa trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
 async def delete_status(status_id: str, db: Session = Depends(get_database_session)):
     existing_status= db.query(StatusModel).filter(StatusModel.id == status_id).first()
     if not existing_status:

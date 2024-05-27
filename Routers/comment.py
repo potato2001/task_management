@@ -9,7 +9,7 @@ from datetime import datetime
 import uuid
 from auth.auth_handler import JWTBearer
 
-router = APIRouter()  
+router = APIRouter(prefix="/api/v1/comment")  
 model.Base.metadata.create_all(bind=engine)
 
 
@@ -21,7 +21,7 @@ def get_database_session():
         db.close()
 
 #Thêm loại sản phẩm
-@router.post("/api/v1/comment/create", summary="Tạo Comment")
+@router.post("/create", summary="Tạo Comment")
 async def create_comment(
     commmentSchema: CommentSchema,
     db: Session = Depends(get_database_session),
@@ -40,7 +40,7 @@ async def create_comment(
     return {"message": "Tạo comment thành công"}
 
 # Sủa loại sản phẩm
-@router.put("/api/v1/comment/update/{comment_id}", summary="Cập nhật Comment",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.put("/update/{comment_id}", summary="Cập nhật Comment",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 async def update_tag(
     comment_id: str,
     comment_update: CommentSchema,
@@ -63,7 +63,7 @@ async def update_tag(
     return {"message": "Chỉnh sửa Comment thành công"}
 
 #Lấy tất cả loại sản phẩm
-@router.get("/api/v1/comments_in_task/{task_id}", summary="Lấy tất cả comment theo task")
+@router.get("/comments_in_task/{task_id}", summary="Lấy tất cả comment theo task")
 def get_comments_in_task(
     task_id: str,
     db: Session = Depends(get_database_session),
@@ -103,7 +103,7 @@ def get_comments_in_task(
         })
     
     return all_comments
-@router.get("/api/v1/comment/{task_id}/{comment_id}", summary="Lấy một comment",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.get("/{task_id}/{comment_id}", summary="Lấy một comment",dependencies=[Depends(JWTBearer().has_role([1]))])
 def get_comment_by_id(
     comment_id: str,
     db: Session = Depends(get_database_session),
@@ -113,7 +113,7 @@ def get_comment_by_id(
     )
     return comment
 #Xóa loại sản phẩm
-@router.delete("/api/v1/comment/delete/{comment_id}", summary="Xóa Comment",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.delete("/delete/{comment_id}", summary="Xóa Comment",dependencies=[Depends(JWTBearer().has_role([1]))])
 async def delete_comment(comment_id:str, db: Session = Depends(get_database_session)):
     existing_comment= db.query(CommentModel).filter(CommentModel.id == comment_id).first()
 
