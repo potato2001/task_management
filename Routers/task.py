@@ -264,7 +264,8 @@ def get_task_status_by_id(
         .join(StatusModel, TaskModel.status_id == StatusModel.id)
         .join(Assigner, TaskModel.assigner == Assigner.id)
         .join(Carrier, TaskModel.carrier == Carrier.id)
-        .filter(StatusModel.id == status_id)
+        .filter(StatusModel.id == status_id, TaskModel.deleted_at == None)
+        .order_by(TaskModel.end_time.asc())
         .all()  # Fetch all matching results
     )
 
