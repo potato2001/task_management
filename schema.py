@@ -19,7 +19,7 @@ class StatusSchema(BaseModel):
     name:str
     color:str
     background_color:str
-    is_completed:str
+    is_completed:int
 class TagToTaskSchema(BaseModel):
     tag_id:str  
 class TaskSchema(BaseModel):
@@ -36,7 +36,7 @@ class TagSchema(BaseModel):
     name:str
     color:str
     background_color:str
-    is_default:str
+    is_default:int
 class CommentSchema(BaseModel):
     task_id:str
     user_id:str
