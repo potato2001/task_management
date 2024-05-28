@@ -58,7 +58,7 @@ DROP TABLE IF EXISTS `position`;
 CREATE TABLE `position` (
   `id` varchar(45) NOT NULL,
   `name` longtext,
-  `role` tinyint DEFAULT NULL,
+  `role` tinyint(1) DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   `deleted_at` datetime DEFAULT NULL,
