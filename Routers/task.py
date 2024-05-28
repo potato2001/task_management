@@ -107,17 +107,19 @@ async def update_task(
 async def update_task(
     task_id: str,
     status_id: str,
+    authorization: str = Header(...),
     db: Session = Depends(get_database_session),
 ):
+    user = decodeJWT(authorization.split()[1])
     # Retrieve the existing task
     task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
     status = db.query(StatusModel).filter(StatusModel.id == status_id).first()
-
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy công việc!")
     if not status:
-        raise HTTPException(status_code=404, detail="Status not found")
-    print(task)
+        raise HTTPException(status_code=404, detail="Không tìm thấy trạng thái!")
+    if(task.carrier != user['id']):
+        raise HTTPException(status_code=403, detail="Bạn không có quyền thực hiện hành động này!")
     task.status_id = status_id
     task.updated_at=datetime.now().strftime("%Y-%m-%d %H:%M")
     # Process the tags
