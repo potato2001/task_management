@@ -5,7 +5,7 @@ from typing import Optional,List
 
 class PositionSchema(BaseModel):
     name:str
-    role:str
+    role:int
 class UserSchema(BaseModel):
     name:str
     email:str

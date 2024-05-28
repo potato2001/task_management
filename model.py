@@ -23,7 +23,7 @@ class PositionModel(Base):
     __tablename__= "position"
     id  = Column(String, primary_key=True, index=True)
     name=Column(String)
-    role=Column(String)
+    role=Column(Integer)
     created_at=Column(String)
     updated_at=Column(String)
     deleted_at=Column(String)

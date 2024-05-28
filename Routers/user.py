@@ -40,7 +40,10 @@ async def get_user(
             "gender": user.gender,
             "dob": user.dob,
             "avatar": user.avatar,
-            "position": position
+            "position": position,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
+            "deleted_at": user.deleted_at
         }
     else:
         return {"error": "User not found"}, 404
@@ -63,6 +66,9 @@ async def get_user_all(
                 "gender": user.gender,
                 "dob": user.dob,
                 "avatar": user.avatar,
-                "position": position
+                "position": position,
+                "created_at": user.created_at,
+                "updated_at": user.updated_at,
+                "deleted_at": user.deleted_at
             })
     return users
