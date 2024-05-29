@@ -11,6 +11,7 @@ class UserModel(Base):
     email = Column(String, unique=True)
     phone = Column(String)
     password = Column(String)
+    description = Column(String)
     address = Column(String)
     gender = Column(Integer)
     avatar = Column(String)

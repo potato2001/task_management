@@ -12,9 +12,26 @@ class UserSchema(BaseModel):
     phone:str
     password:str
     address:str
-    gender:str
+    gender:int
     dob:str
+    description:Optional[str]
     position_id:str
+class AdminControlUserSchema(BaseModel):
+    name:str
+    email:str
+    phone:str
+    address:str
+    gender:int
+    dob:str
+    description:Optional[str]
+    position_id:str
+class UserControlSchema(BaseModel):
+    name:str
+    phone:str
+    description:Optional[str]
+    address:str
+    gender:int
+    dob:str
 class StatusSchema(BaseModel):
     name:str
     color:str

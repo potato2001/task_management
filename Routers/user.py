@@ -1,10 +1,11 @@
-from fastapi import Depends, Header,APIRouter
+from fastapi import Depends, Header,APIRouter,HTTPException
 from sqlalchemy.orm import Session
 from auth.auth_handler import decodeJWT
 from model import UserModel,PositionModel
 from database import SessionLocal, engine
 import model
 from auth.auth_handler import JWTBearer
+from schema import UserSchema,UserControlSchema,AdminControlUserSchema
 
 router = APIRouter(prefix="/api/v1/user")  
 model.Base.metadata.create_all(bind=engine)
@@ -72,3 +73,64 @@ async def get_user_all(
                 "deleted_at": user.deleted_at
             })
     return users
+@router.patch("/update", summary="Cập nhật thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+async def update_user(
+    user_update: UserControlSchema,
+    authorization: str = Header(...),
+    db: Session = Depends(get_database_session),
+):
+    user = decodeJWT(authorization.split()[1])
+    email = user.get("email")
+
+    user_data = db.query(UserModel).filter(UserModel.email == email).first()
+
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_update.name is not None:
+        user_data.name = user_update.name
+    if user_update.phone is not None:
+        user_data.phone = user_update.phone
+    if user_update.address is not None:
+        user_data.address = user_update.address
+    if user_update.gender is not None:
+        user_data.gender = user_update.gender
+    if user_update.dob is not None:
+        user_data.dob = user_update.dob
+    if user_update.description is not None:
+        user_data.description = user_update.description
+
+
+    db.commit()
+
+    return {"message": "Cập nhật người dùng thành công"}
+@router.patch("/update/{user_id}", summary="Cập nhật thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1]))])
+async def update_user(
+    user_id: str,
+    user_update: AdminControlUserSchema,
+    db: Session = Depends(get_database_session),
+):
+    user_data = db.query(UserModel).filter(UserModel.id == user_id).first()
+
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_update.name is not None:
+        user_data.name = user_update.name
+    if user_update.email is not None:
+        user_data.email = user_update.email
+    if user_update.phone is not None:
+        user_data.phone = user_update.phone
+    if user_update.address is not None:
+        user_data.address = user_update.address
+    if user_update.gender is not None:
+        user_data.gender = user_update.gender
+    if user_update.dob is not None:
+        user_data.dob = user_update.dob
+    if user_update.description is not None:
+        user_data.description = user_update.description
+    if user_update.position_id is not None:
+        user_data.position_id = user_update.position_id
+    db.commit()
+
+    return {"message": "Cập nhật người dùng thành công"}
