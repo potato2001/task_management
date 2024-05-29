@@ -1,4 +1,4 @@
-from fastapi import Depends, Header,APIRouter,HTTPException
+from fastapi import Depends, Header,APIRouter,HTTPException,UploadFile,File
 from sqlalchemy.orm import Session
 from auth.auth_handler import decodeJWT
 from model import UserModel,PositionModel
@@ -104,33 +104,57 @@ async def update_user(
     db.commit()
 
     return {"message": "Cập nhật người dùng thành công"}
-@router.patch("/update/{user_id}", summary="Cập nhật thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1]))])
-async def update_user(
-    user_id: str,
-    user_update: AdminControlUserSchema,
+@router.patch("/avatar", summary="Cập nhật ảnh đại diện", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+async def update_avatar(
+    authorization: str = Header(...),
+    file: UploadFile = File(...),
     db: Session = Depends(get_database_session),
 ):
-    user_data = db.query(UserModel).filter(UserModel.id == user_id).first()
+    user = decodeJWT(authorization.split()[1])
+    email = user.get("email")
+
+    user_data = db.query(UserModel).filter(UserModel.email == email).first()
 
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if user_update.name is not None:
-        user_data.name = user_update.name
-    if user_update.email is not None:
-        user_data.email = user_update.email
-    if user_update.phone is not None:
-        user_data.phone = user_update.phone
-    if user_update.address is not None:
-        user_data.address = user_update.address
-    if user_update.gender is not None:
-        user_data.gender = user_update.gender
-    if user_update.dob is not None:
-        user_data.dob = user_update.dob
-    if user_update.description is not None:
-        user_data.description = user_update.description
-    if user_update.position_id is not None:
-        user_data.position_id = user_update.position_id
+    # Save the file to a designated location
+    file_location = f"images/{user_data.id}_{file.filename}"
+    with open(file_location, "wb") as f:
+        f.write(file.file.read())
+
+    # Update the user's avatar field
+    user_data.avatar = file_location
     db.commit()
 
-    return {"message": "Cập nhật người dùng thành công"}
+    return {"message": "Cập nhật ảnh đại diện thành công", "avatar": file_location}
+# @router.patch("/update/{user_id}", summary="Cập nhật thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1]))])
+# async def update_user(
+#     user_id: str,
+#     user_update: AdminControlUserSchema,
+#     db: Session = Depends(get_database_session),
+# ):
+#     user_data = db.query(UserModel).filter(UserModel.id == user_id).first()
+
+#     if not user_data:
+#         raise HTTPException(status_code=404, detail="User not found")
+
+#     if user_update.name is not None:
+#         user_data.name = user_update.name
+#     if user_update.email is not None:
+#         user_data.email = user_update.email
+#     if user_update.phone is not None:
+#         user_data.phone = user_update.phone
+#     if user_update.address is not None:
+#         user_data.address = user_update.address
+#     if user_update.gender is not None:
+#         user_data.gender = user_update.gender
+#     if user_update.dob is not None:
+#         user_data.dob = user_update.dob
+#     if user_update.description is not None:
+#         user_data.description = user_update.description
+#     if user_update.position_id is not None:
+#         user_data.position_id = user_update.position_id
+#     db.commit()
+
+#     return {"message": "Cập nhật người dùng thành công"}

@@ -93,6 +93,9 @@ async def login(user_login: UserLogin, db: Session = Depends(get_database_sessio
         return JSONResponse(status_code=400, content={"message": "Sai mật khẩu"})
     user_exists = db.query(exists().where(UserModel.email == email)).scalar()
     user = db.query(UserModel).filter(UserModel.email == email).first()
+    if user.deleted_at:
+        return JSONResponse(status_code=400, content={"message": "Tài khoản đã bị ngưng kích hoạt, vui lòng liên hệ quản trị viên để nhận được hỗ trợ"})
+
     if not user_exists:
         return JSONResponse(status_code=400, content={"message": "Không có tài khoản"})
     elif not pwd_context.verify(password, user.password):
@@ -100,14 +103,6 @@ async def login(user_login: UserLogin, db: Session = Depends(get_database_sessio
     else:
         role = db.query(PositionModel).filter(PositionModel.id == user.position_id).first().role
         return signJWT(email, user.id, role)  
-
-@router.get("/admin",dependencies=[Depends(JWTBearer().has_role([2]))])
-async def read_admin_data():
-    return {"msg": "This is admin data"}
-
-@router.get("/user1", dependencies=[Depends(JWTBearer().has_role([2, 1]))])
-async def read_user_data():
-    return {"msg": "This is user data"}
 
 
 # @router.post("/api/v1/refresh")

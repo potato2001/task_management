@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from Routers import position, login, user, status, task, tag, comment
+from Routers import position, login, user, status, task, tag, comment,admin
 from sockets import sio_app
 
 # Create FastAPI app instance
@@ -27,8 +27,9 @@ app.add_middleware(
 app.mount("/images", StaticFiles(directory="images"), name="images")
 
 # Include FastAPI routers at the root path
-app.include_router(user.router, tags=['User Controller'])
 app.include_router(login.router, tags=['Login Controller'])
+app.include_router(user.router, tags=['User Controller'])
+app.include_router(admin.router, tags=['Admin Controller'])
 app.include_router(position.router, tags=['Position Controller'])
 app.include_router(status.router, tags=['Status Controller'])
 app.include_router(task.router, tags=['Task Controller'])
