@@ -104,8 +104,14 @@ class JWTBearer(HTTPBearer):
 
     def has_role(self, roles: List[int]):
         def role_checker(user: dict = Depends(self.get_current_user)):
-            user_roles = [int(role) for role in user.get("roles", [])]
+            user_roles = user.get("roles", [])
+            if isinstance(user_roles, int):
+                user_roles = [user_roles]
+            else:
+                user_roles = [int(role) for role in user_roles]
             if any(role in user_roles for role in roles):
                 return user
             raise HTTPException(status_code=403, detail="Operation not permitted")
+
         return role_checker
+
