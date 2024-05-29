@@ -19,7 +19,7 @@ def get_database_session():
     finally:
         db.close()
 
-@router.patch("/update_user/{user_id}", summary="Cập nhật thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.patch("/user/update/{user_id}", summary="Cập nhật thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1]))])
 async def update_user(
     user_id: str,
     user_update: AdminControlUserSchema,
@@ -49,7 +49,7 @@ async def update_user(
     db.commit()
 
     return {"message": "Cập nhật người dùng thành công"}
-@router.patch("/active_user/{user_id}", summary="Thay đổi trạng thái tài khoản thành công", dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.patch("/user/active/{user_id}", summary="Thay đổi trạng thái tài khoản thành công", dependencies=[Depends(JWTBearer().has_role([1]))])
 async def update_user(
     user_id: str,
     deleted_at: str = Body(..., embed=True),
