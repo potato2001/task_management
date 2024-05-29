@@ -6,6 +6,7 @@ from database import SessionLocal, engine
 import model
 from auth.auth_handler import JWTBearer
 from schema import UserSchema,UserControlSchema,AdminControlUserSchema
+from datetime import datetime
 
 router = APIRouter(prefix="/api/v1/user")  
 model.Base.metadata.create_all(bind=engine)
@@ -124,7 +125,8 @@ async def update_avatar(
         f.write(file.file.read())
 
     # Update the user's avatar field
-    user_data.avatar = file_location
+    user_data.avatar = "/"+file_location
+    user_data.updated_at =  datetime.now().strftime("%Y-%m-%d %H:%M")
     db.commit()
 
     return {"message": "Cập nhật ảnh đại diện thành công", "avatar": file_location}
