@@ -49,7 +49,7 @@ async def update_user(
     db.commit()
 
     return {"message": "Cập nhật người dùng thành công"}
-@router.patch("/user/active/{user_id}", summary="Thay đổi trạng thái tài khoản thành công", dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.patch("/user/activate/{user_id}", summary="Thay đổi trạng thái tài khoản thành công", dependencies=[Depends(JWTBearer().has_role([1]))])
 async def update_user(
     user_id: str,
     deleted_at: str = Body(..., embed=True),
