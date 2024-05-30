@@ -54,6 +54,10 @@ class TagSchema(BaseModel):
     color:str
     background_color:str
     is_default:int
+class TagCreateRequest(BaseModel):
+    name:str
+    color:str
+    background_color:str
 class CommentSchema(BaseModel):
     task_id:str
     user_id:str

@@ -3,7 +3,7 @@ from sqlalchemy import exists
 from sqlalchemy.orm import Session
 from model import TagModel
 from database import SessionLocal, engine
-from schema import TagSchema
+from schema import TagSchema, TagCreateRequest
 import model
 from datetime import datetime
 import uuid
@@ -23,7 +23,7 @@ def get_database_session():
 #Thêm loại sản phẩm
 @router.post("/create", summary="Tạo Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def create_tag(
-    tagSchema: TagSchema,
+    tagSchema: TagCreateRequest,
     db: Session = Depends(get_database_session),
 ):
     tag_exists = db.query(exists().where(TagModel.name == tagSchema.name)).scalar()
@@ -35,31 +35,30 @@ async def create_tag(
         name=tagSchema.name,
         color=tagSchema.color,
         background_color=tagSchema.background_color,
-        is_default=tagSchema.is_default,
+        is_default=False,
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
     )
 
     db.add(new_tag)
     db.commit()
     db.refresh(new_tag)
-    return {"message": "Tạo Tag thành công"}
+    return {"message": "Tạo nhãn dán thành công"}
 
 # Sủa loại sản phẩm
-@router.put("/update/{tag_id}", summary="Cập nhật Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.patch("/update/{tag_id}", summary="Cập nhật Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def update_tag(
     tag_id: str,
-    tag_update: TagSchema,
+    tag_update: TagCreateRequest,
     db: Session = Depends(get_database_session),
 ):
     existing_tag = db.query(TagModel).filter(TagModel.id == tag_id).first()
     if not existing_tag:
-        raise HTTPException(status_code=404, detail="Tag không tồn tại!")
-
+        raise HTTPException(status_code=404, detail="Nhãn dán không tồn tại!")
+    if existing_tag.is_default == True:
+        raise HTTPException(status_code=404, detail="Không được phép sửa nhãn dán này!")
     existing_tag.name = tag_update.name
     existing_tag.color = tag_update.color
     existing_tag.background_color = tag_update.background_color
-    existing_tag.is_default = tag_update.is_default
-    existing_tag.task_id=tag_update.task_id,
     existing_tag.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
     existing_tag.deleted_at =None
 
@@ -67,10 +66,10 @@ async def update_tag(
     db.commit()
     db.refresh(existing_tag)
 
-    return {"message": "Chỉnh sửa Tag thành công"}
+    return {"message": "Chỉnh sửa nhãn dán thành công"}
 
 #Hoàn tác xoá đăng nhập
-@router.put("/undo_delete/{status_id}", summary="Hoàn tác xóa Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.patch("/undo_delete/{status_id}", summary="Hoàn tác xóa Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def undo_delete_tag(status_id: str, db: Session = Depends(get_database_session)):
     existing_tag= db.query(TagModel).filter(TagModel.id == status_id).first()
     if not existing_tag:
@@ -99,12 +98,14 @@ def get_tag_by_id(
     )
     return  tag
 #Xóa loại sản phẩm
-@router.delete("delete/{tag_id}", summary="Xóa Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
-async def delete_status(tag_id: str, db: Session = Depends(get_database_session)):
-    existing_status= db.query(TagModel).filter(TagModel.id == tag_id).first()
-    if not existing_status:
+@router.delete("/delete/{tag_id}", summary="Xóa Tag",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+async def delete_tag(tag_id: str, db: Session = Depends(get_database_session)):
+    existing_tag= db.query(TagModel).filter(TagModel.id == tag_id).first()
+    if not existing_tag:
         raise HTTPException(status_code=404, detail=f"Tag không tồn tại!")
-    existing_status.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+    if existing_tag.is_default == True:
+        raise HTTPException(status_code=404, detail="Không được phép xoá nhãn dán này!")
+    existing_tag.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     db.commit()
 

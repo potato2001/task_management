@@ -28,6 +28,7 @@ async def create_status(
     db: Session = Depends(get_database_session),
 ):
     status_exists = db.query(exists().where(StatusModel.name == statusSchema.name)).scalar()
+    
     if status_exists:
         raise HTTPException(status_code=400, detail="Trạng thái đã tồn tại")
 
@@ -37,7 +38,7 @@ async def create_status(
         name=statusSchema.name,
         color=statusSchema.color,
         background_color=statusSchema.background_color,
-        is_default="false",
+        is_default=False,
         is_completed=statusSchema.is_completed,
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
     )
@@ -48,7 +49,7 @@ async def create_status(
     return {"message": "Tạo trạng thái thành công"}
 
 # Sủa loại sản phẩm
-@router.put("/update/{status_id}", summary="Cập nhật trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.patch("/update/{status_id}", summary="Cập nhật trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
 async def update_status(
     status_id: str,
     status_update: StatusSchema,
@@ -57,12 +58,11 @@ async def update_status(
     existing_status = db.query(StatusModel).filter(StatusModel.id == status_id).first()
     if not existing_status:
         raise HTTPException(status_code=404, detail="Trạng thái không tồn tại!")
-
     existing_status.name = status_update.name
     existing_status.color = status_update.color
     existing_status.background_color = status_update.background_color
-    existing_status.is_default = status_update.is_default
-
+    existing_status.is_completed = status_update.is_completed
+    existing_status.is_default = False
     existing_status.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
     existing_status.deleted_at =None
 
@@ -73,7 +73,7 @@ async def update_status(
     return {"message": "Chỉnh sửa trạng thái thành công"}
 
 #Hoàn tác xoá đăng nhập
-@router.put("/undo_delete/{status_id}", summary="Hoàn tác xóa trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.patch("/undo_delete/{status_id}", summary="Hoàn tác xóa trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
 async def undo_delete_status(
     status_id: str,
     db: Session = Depends(get_database_session)):
@@ -86,7 +86,7 @@ async def undo_delete_status(
 
     return {"message": "Hoàn tác xoá trạng thái thành công"}
 #Đặt làm mặc định
-@router.post("/default/{status_id}", summary="Đặt làm mặc định", dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.patch("/default/{status_id}", summary="Đặt làm mặc định", dependencies=[Depends(JWTBearer().has_role([1]))])
 async def set_default_status(status_id: str, db: Session = Depends(get_database_session)):
     existing_status = db.query(StatusModel).filter(StatusModel.id == status_id).first()
     if not existing_status:
