@@ -27,7 +27,7 @@ async def create_status(
     statusSchema: StatusSchema,
     db: Session = Depends(get_database_session),
 ):
-    status_exists = db.query(exists().where(StatusModel.name == statusSchema.name)).scalar()
+    status_exists = db.query(exists().where(StatusModel.name == statusSchema.name, StatusModel.deleted_at == None)).scalar()
     
     if status_exists:
         raise HTTPException(status_code=400, detail="Trạng thái đã tồn tại")
