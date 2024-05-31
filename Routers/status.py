@@ -1,7 +1,7 @@
 from fastapi import Depends, APIRouter,HTTPException,Form
 from sqlalchemy import exists
 from sqlalchemy.orm import Session
-from model import StatusModel
+from model import StatusModel,TaskModel
 from database import SessionLocal, engine
 from schema import StatusSchema
 import model
@@ -120,13 +120,21 @@ def get_status_by_id(
     )
     return  statuses
 #Xóa loại sản phẩm
-@router.delete("/delete/{status_id}", summary="Xóa trạng thái",dependencies=[Depends(JWTBearer().has_role([1]))])
+@router.delete("/delete/{status_id}", summary="Xóa trạng thái", dependencies=[Depends(JWTBearer().has_role([1]))])
 async def delete_status(status_id: str, db: Session = Depends(get_database_session)):
-    existing_status= db.query(StatusModel).filter(StatusModel.id == status_id).first()
+    existing_status = db.query(StatusModel).filter(StatusModel.id == status_id).first()
     if not existing_status:
-        raise HTTPException(status_code=404, detail=f"Trạng thái không tồn tại!")
-    existing_status.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%M")
-
+        raise HTTPException(status_code=404, detail="Trạng thái không tồn tại!")
+    
+    if existing_status.name == "Cần làm":
+        raise HTTPException(status_code=400, detail="Không thể xóa trạng thái mặc định")
+    
+    associated_tasks = db.query(TaskModel).filter(TaskModel.status_id == status_id).first()
+    if associated_tasks:
+        raise HTTPException(status_code=400, detail="Không thể xóa trạng thái đang được sử dụng trong công việc!")
+    
+    # Delete the status immediately
+    db.delete(existing_status)
     db.commit()
 
     return {"message": "Xoá trạng thái thành công"}
