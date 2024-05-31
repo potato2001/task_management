@@ -47,7 +47,7 @@ async def create_position(
     return {"message": "Tạo vị trí thành công"}
 
 # Sủa loại sản phẩm
-@router.put("/update/{position_id}", summary="Cập nhật vị trí",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.patch("/update/{position_id}", summary="Cập nhật vị trí",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def update_postion(
     position_id: str,
     position_update: PositionSchema,
@@ -69,7 +69,7 @@ async def update_postion(
     return {"message": "Chỉnh sửa vị trí thành công"}
 
 #Hoàn tác xoá vị trí
-@router.put("/undo_delete/{position_id}", summary="Hoàn tác xóa vị trí",dependencies=[Depends(JWTBearer().has_role([1,2]))])
+@router.patch("/undo_delete/{position_id}", summary="Hoàn tác xóa vị trí",dependencies=[Depends(JWTBearer().has_role([1,2]))])
 async def undo_delete_category(position_id: str, db: Session = Depends(get_database_session)):
     existing_position = db.query(PositionModel).filter(PositionModel.id == position_id).first()
     if not existing_position:
