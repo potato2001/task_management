@@ -52,18 +52,18 @@ async def update_user(
 @router.patch("/user/activate/{user_id}", summary="Thay đổi trạng thái tài khoản thành công", dependencies=[Depends(JWTBearer().has_role([1]))])
 async def update_user(
     user_id: str,
-    deleted_at: str = Body(..., embed=True),
     db: Session = Depends(get_database_session),
 ):
     user_data = db.query(UserModel).filter(UserModel.id == user_id).first()
-
+    deleted_at = datetime.now().strftime("%Y-%m-%d %H:%M")
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
-    if deleted_at=="null":
+    if user_data.deleted_at != None:
+        print(1)
         user_data.deleted_at = None
         db.commit()
-
     else:
+        print(2)
         user_data.deleted_at = deleted_at
         db.commit()
 

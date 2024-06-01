@@ -43,6 +43,7 @@ async def get_user_self(
             "dob": user.dob,
             "avatar": user.avatar,
             "position": position,
+            "description": user.description,
             "created_at": user.created_at,
             "updated_at": user.updated_at,
             "deleted_at": user.deleted_at
@@ -69,6 +70,7 @@ async def get_user_all(
                 "dob": user.dob,
                 "avatar": user.avatar,
                 "position": position,
+                "description": user.description,
                 "created_at": user.created_at,
                 "updated_at": user.updated_at,
                 "deleted_at": user.deleted_at
@@ -94,6 +96,7 @@ async def get_user(
             "dob": user.dob,
             "avatar": user.avatar,
             "position": position,
+            "description": user.description,
             "created_at": user.created_at,
             "updated_at": user.updated_at,
             "deleted_at": user.deleted_at

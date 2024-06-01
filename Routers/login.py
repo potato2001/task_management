@@ -1,7 +1,8 @@
-from fastapi import Depends, Form,status,APIRouter,UploadFile,File
+from fastapi import Depends, Form,status,APIRouter, Header,UploadFile,File
 from fastapi.responses import JSONResponse
 from sqlalchemy import exists
 import base64
+from auth.auth_handler import decodeJWT
 from sqlalchemy.orm import Session
 from auth.auth_handler import signJWT,JWTBearer
 from model import UserModel,PositionModel
@@ -31,49 +32,43 @@ def get_database_session():
 class UserLogin(BaseModel):
     email: str
     password: str
-
+class PasswordUpdate(BaseModel):
+    old_password: str
+    new_password: str
+    new_confirm_password: str
+class UserCreate(BaseModel):
+    name: str
+    dob: str
+    gender: int
+    phone: str
+    address: str
+    email: str
+    password: str
+    position_id: str
+    description: str
 @router.post("/api/v1/signup", summary="Đăng ký")
 async def create_account(
-    email: str = Form(...),
-    password: str = Form(...),
-    name: str = Form(...),
-    position_id: str = Form(),
-    phone: str = Form(),
-    address: str = Form(),
-    gender: int = Form(),
-    dob: str = Form(),
-    avatar: UploadFile = File(None),
+    user: UserCreate,
     db: Session = Depends(get_database_session)
 ):
-    user_exists = db.query(exists().where(UserModel.email == email)).scalar()
+    user_exists = db.query(exists().where(UserModel.email == user.email)).scalar()
     if user_exists:
         return JSONResponse(status_code=400, content={"message": "Tài khoản bị trùng"})
-    elif len(password) < 6:
+    elif len(user.password) < 8:
         return JSONResponse(status_code=400, content={"message": "Mật khẩu tối thiểu là 6 ký tự"})
-    hashed_password = pwd_context.hash(password)
-
-    # Ensure the directory exists
-    os.makedirs("images", exist_ok=True)
-
-    avatar_filepath = None
-    if avatar:
-        # Save the uploaded avatar file
-        avatar_filename = f"{str(uuid.uuid4()).replace('-', '')[:10]}.png"
-        avatar_filepath = f"images/{avatar_filename}"
-        with open(avatar_filepath, "wb") as buffer:
-            shutil.copyfileobj(avatar.file, buffer)
+    hashed_password = pwd_context.hash(user.password)
 
     new_user = UserModel(
         id=str(uuid.uuid4()).replace('-', '')[:8],
-        name=name,
-        email=email,
+        name=user.name,
+        email=user.email,
         password=hashed_password,
-        phone=phone,
-        address=address,
-        gender=gender,
-        avatar=avatar_filepath,
-        position_id=position_id,
-        dob=dob,
+        phone=user.phone,
+        address=user.address,
+        gender=user.gender,
+        position_id=user.position_id,
+        dob=user.dob,
+        description=user.description,
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
     )
     db.add(new_user)
@@ -109,26 +104,26 @@ async def login(user_login: UserLogin, db: Session = Depends(get_database_sessio
 # async def refresh_token(refresh_token: str):
 #     return refresh_access_token(refresh_token)
 
+
 #Đổi mật khẩu
-@router.put("/api/v1/change_password", dependencies=[Depends(JWTBearer().has_role([2, 1]))], summary="Đổi mật khẩu")
+@router.patch("/api/v1/change_password", dependencies=[Depends(JWTBearer().has_role([2, 1]))], summary="Đổi mật khẩu")
 async def change_password(
+    password: PasswordUpdate,
     db: Session = Depends(get_database_session),
-    email: str = Form(...),
-    old_password: str = Form(...),
-    new_password: str = Form(...),
-    new_confirm_password: str = Form(...)
+    authorization: str = Header(...),
 ):
     Duser = db.query(UserModel).filter(UserModel.email == email).first()
-
+    user = decodeJWT(authorization.split()[1])
+    email = user.get("email")
     if Duser is None:
         return JSONResponse(status_code=404, content={"message": "Người dùng không tồn tại!"})
-    if not pwd_context.verify(old_password, Duser.password):
+    if not pwd_context.verify(password.old_password, Duser.password):
         return JSONResponse(status_code=400, content={"message": "Sai mật khẩu!"})
-    if new_password != new_confirm_password:
+    if password.new_password != password.new_confirm_password:
         return JSONResponse(status_code=400, content={"message": "Mật khẩu xác nhận không khớp!"})
-    if len(new_password) < 6:
+    if len(password.new_password) < 8:
         return JSONResponse(status_code=400, content={"message": "Mật khẩu quá ngắn!"})
-    hashed_new_password = pwd_context.hash(new_password)
+    hashed_new_password = pwd_context.hash(password.new_password)
     Duser.password = hashed_new_password
     db.commit()
     db.refresh(Duser)
