@@ -59,11 +59,9 @@ async def update_user(
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
     if user_data.deleted_at != None:
-        print(1)
         user_data.deleted_at = None
         db.commit()
     else:
-        print(2)
         user_data.deleted_at = deleted_at
         db.commit()
 
