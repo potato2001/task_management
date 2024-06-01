@@ -56,7 +56,6 @@ async def create_task(
     if taskSchema.tags:
 
         for tag in taskSchema.tags:
-            print(tag)
             task_has_tag = TaskHasTagModel(
                 task_id=new_task.id,
                 tag_id=tag,

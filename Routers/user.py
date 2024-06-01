@@ -82,7 +82,6 @@ async def get_user(
 ):
     # Query the database to get the user along with the position name
     user_data = db.query(UserModel, PositionModel).join(PositionModel, UserModel.position_id == PositionModel.id).filter(UserModel.id == user_id).first()
-    print(user_data)
     if user_data:
         user, position = user_data
         return {
