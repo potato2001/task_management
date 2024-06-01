@@ -19,8 +19,8 @@ def get_database_session():
     finally:
         db.close()
 
-@router.get("", summary="Lấy thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
-async def get_user(
+@router.get("/self", summary="Lấy thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
+async def get_user_self(
     authorization: str = Header(...),
     db: Session = Depends(get_database_session),
 ):
@@ -49,7 +49,7 @@ async def get_user(
         }
     else:
         return {"error": "User not found"}, 404
-    
+
 @router.get("/all", summary="Lấy thông tin tất cả user", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def get_user_all(
     db: Session = Depends(get_database_session),
@@ -74,6 +74,34 @@ async def get_user_all(
                 "deleted_at": user.deleted_at
             })
     return users
+
+@router.get("/{user_id}", summary="Lấy thông tin user", dependencies=[Depends(JWTBearer().has_role([1]))])
+async def get_user(
+    user_id: str,
+    db: Session = Depends(get_database_session),
+):
+    # Query the database to get the user along with the position name
+    user_data = db.query(UserModel, PositionModel).join(PositionModel, UserModel.position_id == PositionModel.id).filter(UserModel.id == user_id).first()
+    print(user_data)
+    if user_data:
+        user, position = user_data
+        return {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "phone": user.phone,
+            "address": user.address,
+            "gender": user.gender,
+            "dob": user.dob,
+            "avatar": user.avatar,
+            "position": position,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
+            "deleted_at": user.deleted_at
+        }
+    else:
+        return {"error": "User not found"}, 404
+
 @router.patch("/update", summary="Cập nhật thông tin bản thân", dependencies=[Depends(JWTBearer().has_role([1, 2, 3]))])
 async def update_user(
     user_update: UserControlSchema,

@@ -85,7 +85,7 @@ def get_category(
     db: Session = Depends(get_database_session),
 ):
     positions = (
-    db.query(PositionModel).all()
+    db.query(PositionModel).filter(PositionModel.deleted_at == None).all()
 
     )
     return positions

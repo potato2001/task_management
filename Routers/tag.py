@@ -26,7 +26,7 @@ async def create_tag(
     tagSchema: TagCreateRequest,
     db: Session = Depends(get_database_session),
 ):
-    tag_exists = db.query(exists().where(TagModel.name == tagSchema.name)).scalar()
+    tag_exists = db.query(exists().where(TagModel.name == tagSchema.name, TagModel.deleted_at == None)).scalar()
     if tag_exists:
         raise HTTPException(status_code=400, detail="Tag đã tồn tại")
 
