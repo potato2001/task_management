@@ -112,9 +112,9 @@ async def change_password(
     db: Session = Depends(get_database_session),
     authorization: str = Header(...),
 ):
-    Duser = db.query(UserModel).filter(UserModel.email == email).first()
     user = decodeJWT(authorization.split()[1])
     email = user.get("email")
+    Duser = db.query(UserModel).filter(UserModel.email == email).first()
     if Duser is None:
         return JSONResponse(status_code=404, content={"message": "Người dùng không tồn tại!"})
     if not pwd_context.verify(password.old_password, Duser.password):
