@@ -40,19 +40,17 @@ async def create_comment(
     return {"message": "Tạo comment thành công"}
 
 # Sủa loại sản phẩm
-@router.put("/update/{comment_id}", summary="Cập nhật Comment",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
+@router.patch("/update/{comment_id}", summary="Cập nhật Comment",dependencies=[Depends(JWTBearer().has_role([1,2,3]))])
 async def update_tag(
     comment_id: str,
-    comment_update: CommentSchema,
+    message: str,
     db: Session = Depends(get_database_session),
 ):
     existing_comment = db.query(CommentModel).filter(CommentModel.id == comment_id).first()
     if not existing_comment:
         raise HTTPException(status_code=404, detail="Comment không tồn tại!")
 
-    existing_comment.message = comment_update.message
-    existing_comment.task_id = comment_update.task_id
-    existing_comment.user_id = comment_update.user_id
+    existing_comment.message = message
     existing_comment.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
     existing_comment.deleted_at =None
 

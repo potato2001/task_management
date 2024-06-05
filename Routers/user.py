@@ -148,7 +148,6 @@ async def update_avatar(
 
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
-
     # Save the file to a designated location
     file_location = f"images/{user_data.id}_{file.filename}"
     with open(file_location, "wb") as f:
