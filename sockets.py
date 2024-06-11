@@ -19,16 +19,19 @@ async def connect(sid, environ):
     print(f'{sid}: connected')
     await sio_server.emit('join', sid)
 
+@sio_server.event
+async def updateTask(sid, task_id):
+    await sio_server.emit('receiveUpdateTask', {"taskId": task_id})
 
 @sio_server.event
-async def sendAll(sid, task_id, status_id, is_deleted):
-    await sio_server.emit('receiveAll', {"taskId": task_id,"statusId": status_id,"isDeleted": is_deleted})
+async def createTask(sid, status_id):
+    await sio_server.emit('receiveCreateTask', {"statusId": status_id})
 
 @sio_server.event
-async def sendExcept(sid, prevStatus, nextStatus):
+async def sendStatusChange(sid, prevStatus, nextStatus):
     for client_sid in connected_clients:
         if client_sid != sid:
-            await sio_server.emit('receiveExcept', {"prevStatus": prevStatus, "nextStatus": nextStatus}, room=client_sid)
+            await sio_server.emit('receiveStatusChange', {"prevStatus": prevStatus, "nextStatus": nextStatus}, room=client_sid)
 
 @sio_server.event
 async def disconnect(sid):
